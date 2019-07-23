@@ -11,6 +11,14 @@ $writer->openMemory();
 const NS_DOCKBOOK = 'http://docbook.org/ns/docbook';
 const NS_XLINK = "http://www.w3.org/1999/xlink";
 const NS_EZXHTML = "http://ez.no/xmlns/ezpublish/docbook/xhtml";
+
+function var_err_dump($val)
+{
+    ob_start();
+    var_dump($val);
+    fputs(STDERR, ob_get_clean());
+}
+
 function fqn($ns, $name)
 {
     return "$ns:$name";
@@ -26,15 +34,17 @@ function snapshotReader($reader)
     ];
 }
 
-function readTillClose($reader)
+function skipTillEnd($reader)
 {
     /** @var $reader \XMLReader */
 
     if ($reader->isEmptyElement) {
         return;
     }
-    while ($reader->read() && $reader->name !== 'ezembed') {
-        fprintf(STDERR, "skip %s" . PHP_EOL, $reader->name);
+    $startName = $reader->name;
+    $startDepth = $reader->depth;
+    while ($reader->read() && $reader->name !== $startName && $reader->depth !== $startDepth) {
+        //fprintf(STDERR, "skip %s" . PHP_EOL, $reader->name);
     }
 }
 $callbacks = [
@@ -74,24 +84,127 @@ $callbacks = [
             $writer->endElement();
         }
     },
-
     fqn(NS_DOCKBOOK, 'ezembed') => function ($el, $stack) use ($writer) {
         /** @var $el \XMLReader */
         $doc = new \DOMDocument();
         $xml = $el->readOuterXml();
         $doc->loadXML($xml);
+//        var_err_dump($xml);
+//
+        $xp = new \DOMXPath($doc);
+        $xp->registerNamespace('x', NS_XLINK);
+        $xp->registerNamespace('h', NS_EZXHTML);
+        $xp->registerNamespace('d', NS_DOCKBOOK);
 
         if ($el->nodeType == \XMLReader::ELEMENT) {
-            $writer->startElement('embed');
-            readTillClose($el);
+            switch ($el->getAttributeNs('class', NS_EZXHTML)) {
+                case 'ez-embed-type-image':
+                    $writer->startElement('img');
+                    $writer->writeAttribute(
+                        'size',
+                        $xp->query('/d:ezembed/d:ezconfig/d:ezvalue[@key="size"]')->item(0)->nodeValue
+                    );
+                    $writer->writeAttribute(
+                        'src',
+                        $el->getAttributeNs('href', NS_XLINK)
+                    );
+                    break;
+                default:
+                    $writer->startElement('embed');
+            }
+            skipTillEnd($el);
             $writer->endElement();
             return 'pop';
+        }
+    },
+    fqn(NS_DOCKBOOK, 'itemizedlist') => function ($el, $stack) use ($writer) {
+        /** @var $el \XMLReader */
+        /** @var $writer \XMLWriter */
+
+        switch ($el->nodeType) {
+            case  \XMLReader::ELEMENT:
+                $writer->startElement('ul');
+                break;
+            case  \XMLReader::END_ELEMENT:
+                $writer->endElement();
+                break;
+        }
+    },
+    fqn(NS_DOCKBOOK, 'listitem') => function ($el, $stack) use ($writer) {
+        /** @var $el \XMLReader */
+        /** @var $writer \XMLWriter */
+
+        switch ($el->nodeType) {
+            case  \XMLReader::ELEMENT:
+                $writer->startElement('li');
+                break;
+            case  \XMLReader::END_ELEMENT:
+                $writer->endElement();
+                break;
+        }
+    },
+    fqn(NS_DOCKBOOK, 'superscript') => function ($el, $stack) use ($writer) {
+        /** @var $el \XMLReader */
+        /** @var $writer \XMLWriter */
+
+        switch ($el->nodeType) {
+            case  \XMLReader::ELEMENT:
+                $writer->startElement('sup');
+                break;
+            case  \XMLReader::END_ELEMENT:
+                $writer->endElement();
+                break;
+        }
+    },
+    fqn(NS_DOCKBOOK, 'link') => function ($el, $stack) use ($writer) {
+        /** @var $el \XMLReader */
+        /** @var $writer \XMLWriter */
+
+        switch ($el->nodeType) {
+            case  \XMLReader::ELEMENT:
+                $writer->startElement('a');
+                $writer->writeAttribute('title', $el->getAttributeNs('title', NS_XLINK));
+                $writer->writeAttribute('href', $el->getAttributeNs('href', NS_XLINK));
+                break;
+            case  \XMLReader::END_ELEMENT:
+                $writer->endElement();
+                break;
+        }
+    },
+    fqn(NS_DOCKBOOK, 'title') => function ($el, $stack) use ($writer) {
+        /** @var $el \XMLReader */
+        /** @var $writer \XMLWriter */
+
+        switch ($el->nodeType) {
+            case  \XMLReader::ELEMENT:
+                switch ($el->getAttributeNs('level', NS_EZXHTML)) {
+                    case 1:
+                        $writer->startElement('h1');
+                        break;
+                    case 2:
+                        $writer->startElement('h2');
+                        break;
+                    case 3:
+                        $writer->startElement('h3');
+                        break;
+                    case 4:
+                        $writer->startElement('h4');
+                        break;
+                    case 5:
+                        $writer->startElement('h5');
+                        break;
+                }
+                break;
+            case  \XMLReader::END_ELEMENT:
+                $writer->endElement();
+                break;
         }
     },
 ];
 
 $stack = [];
 $isOpen = null;
+
 while ($reader->read()) {
     $popAtTheEnd = false;
     switch ($reader->nodeType) {
@@ -106,7 +219,7 @@ while ($reader->read()) {
             break;
     }
 
-    fputs(STDERR, str_repeat(" ", $reader->depth) . join(' $ ', [
+    false && fputs(STDERR, str_repeat(" ", $reader->depth) . join(' $ ', [
             $reader->nodeType,
             $reader->namespaceURI,
             $reader->name,
@@ -128,6 +241,8 @@ while ($reader->read()) {
         if ($res === 'pop') {
             array_pop($stack);
         }
+    } else {
+        fprintf(STDERR, "!!! unknown tag [%s:%s]", $reader->namespaceURI, $reader->name);
     }
 
     if ($popAtTheEnd) {
