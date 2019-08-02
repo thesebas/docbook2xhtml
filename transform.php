@@ -111,6 +111,10 @@ $callbacks = [
                     break;
                 default:
                     $writer->startElement('embed');
+                    $writer->writeAttribute(
+                        'src',
+                        $el->getAttributeNs('href', NS_XLINK)
+                    );
             }
             skipTillEnd($el);
             $writer->endElement();
