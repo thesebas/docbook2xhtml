@@ -76,8 +76,11 @@ $callbacks = [
                 case 'italic':
                     $tag = 'i';
                     break;
+                case '':
+                    $tag = 'em';
+                    break;
                 default:
-                    $tag = 'unknown';
+                    $tag = "unknown-{$el->getAttribute('role')}";
             }
             $writer->startElement($tag);
         } else {
