@@ -84,6 +84,9 @@ $callbacks = [
                 case 'italic':
                     $tag = 'i';
                     break;
+                case 'underlined':
+                    $tag = 'u';
+                    break;
                 case '':
                     $tag = 'em';
                     break;
