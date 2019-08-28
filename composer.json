@@ -1,0 +1,16 @@
+{
+    "name": "thesebas/docbook2html",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "thesebas",
+            "email": "thesebas@thesebas.net"
+        }
+    ],
+    "bin": [
+        "docbook2html"
+    ],
+    "require": {}
+
+}
