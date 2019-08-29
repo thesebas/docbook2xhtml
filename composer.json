@@ -9,7 +9,16 @@
       "email": "thesebas@thesebas.net"
     }
   ],
+  "autoload": {
+    "psr-4": {
+      "thesebas\\docbook2html\\": "src/"
+    },
+    "files": [
+      "src/map.php",
+      "src/tools.php"
+    ]
+  },
   "bin": [
-    "docbook2html"
+    "bin/docbook2html"
   ]
 }
