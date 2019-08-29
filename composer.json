@@ -20,5 +20,10 @@
   },
   "bin": [
     "bin/docbook2html"
-  ]
+  ],
+  "require": {
+    "ext-xmlreader": "*",
+    "ext-xmlwriter": "*",
+    "ext-dom": "*"
+  }
 }

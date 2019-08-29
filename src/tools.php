@@ -5,7 +5,7 @@ namespace thesebas\docbook2html;
 const NS_DOCBOOK = 'http://docbook.org/ns/docbook';
 const NS_XLINK = "http://www.w3.org/1999/xlink";
 const NS_EZXHTML = "http://ez.no/xmlns/ezpublish/docbook/xhtml";
-
+const NS_XML = "http://www.w3.org/XML/1998/namespace";
 
 function var_err_dump($val)
 {
@@ -31,7 +31,7 @@ function snapshotReader($reader)
 
 function skipTillEnd($reader)
 {
-    global $veryVerbose;
+//    global $veryVerbose;
     /** @var $reader \XMLReader */
 
     if ($reader->isEmptyElement) {
@@ -40,9 +40,9 @@ function skipTillEnd($reader)
     $startName = $reader->name;
     $startDepth = $reader->depth;
     while ($reader->read() && $reader->name !== $startName && $reader->depth !== $startDepth) {
-        if ($veryVerbose) {
-            fprintf(STDERR, "skip %s" . PHP_EOL, $reader->name);
-        }
+//        if ($veryVerbose) {
+//            fprintf(STDERR, "skip %s" . PHP_EOL, $reader->name);
+//        }
     }
 }
 
@@ -62,4 +62,3 @@ function mapToTag($tag, $writer)
         }
     };
 }
-;
