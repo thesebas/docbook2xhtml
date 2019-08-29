@@ -8,10 +8,13 @@ if (!ini_get('date.timezone')) {
     date_default_timezone_set('UTC');
 }
 
-$opts = getopt('f:');
+$opts = getopt('f:v');
+$verbose = isset($opts['v']);
+$veryVerbose = $verbose && is_array($opts['v']) && \count($opts['v']) > 1;
+$inputFile = $opts['f'];
 
 $reader = new \XMLReader();
-$reader->open($opts['f']);
+$reader->open($inputFile);
 
 $writer = new \XMLWriter();
 $writer->openMemory();
@@ -44,6 +47,7 @@ function snapshotReader($reader)
 
 function skipTillEnd($reader)
 {
+    global $veryVerbose;
     /** @var $reader \XMLReader */
 
     if ($reader->isEmptyElement) {
@@ -52,7 +56,9 @@ function skipTillEnd($reader)
     $startName = $reader->name;
     $startDepth = $reader->depth;
     while ($reader->read() && $reader->name !== $startName && $reader->depth !== $startDepth) {
-        //fprintf(STDERR, "skip %s" . PHP_EOL, $reader->name);
+        if ($veryVerbose) {
+            fprintf(STDERR, "skip %s" . PHP_EOL, $reader->name);
+        }
     }
 }
 $callbacks = [
@@ -74,10 +80,11 @@ $callbacks = [
             $writer->endElement();
         }
     },
-    fqn(NS_DOCKBOOK, 'emphasis') => function ($el) use ($writer) {
+    fqn(NS_DOCKBOOK, 'emphasis') => function ($el) use ($writer, $verbose) {
         if ($el->nodeType == \XMLReader::ELEMENT) {
             /** @var $el \XMLReader */
-            switch ($el->getAttribute('role')) {
+            $role = $el->getAttribute('role');
+            switch ($role) {
                 case 'strong':
                     $tag = 'strong';
                     break;
@@ -91,7 +98,10 @@ $callbacks = [
                     $tag = 'em';
                     break;
                 default:
-                    $tag = "unknown-{$el->getAttribute('role')}";
+                    if ($verbose) {
+                        fprintf(STDERR, "unknown emphasis role %s" . PHP_EOL, $role);
+                    }
+                    $tag = "unknown-{$role}";
             }
             $writer->startElement($tag);
         } else {
@@ -103,15 +113,15 @@ $callbacks = [
         $doc = new \DOMDocument();
         $xml = $el->readOuterXml();
         $doc->loadXML($xml);
-//        var_err_dump($xml);
-//
+
         $xp = new \DOMXPath($doc);
         $xp->registerNamespace('x', NS_XLINK);
         $xp->registerNamespace('h', NS_EZXHTML);
         $xp->registerNamespace('d', NS_DOCKBOOK);
 
         if ($el->nodeType == \XMLReader::ELEMENT) {
-            switch ($el->getAttributeNs('class', NS_EZXHTML)) {
+            $class = $el->getAttributeNs('class', NS_EZXHTML);
+            switch ($class) {
                 case 'ez-embed-type-image':
                     $writer->startElement('img');
                     $writer->writeAttribute(
@@ -123,12 +133,21 @@ $callbacks = [
                         $el->getAttributeNs('href', NS_XLINK)
                     );
                     break;
-                default:
+                case '':
                     $writer->startElement('embed');
                     $writer->writeAttribute(
                         'src',
                         $el->getAttributeNs('href', NS_XLINK)
                     );
+                    break;
+                default:
+                    fprintf(STDERR, "unknown ezembed class [%s]" . PHP_EOL, $class);
+                    $writer->startElement('embed');
+                    $writer->writeAttribute(
+                        'src',
+                        $el->getAttributeNs('href', NS_XLINK)
+                    );
+                    $writer->writeAttribute('class', "unknown-{$class}");
             }
             skipTillEnd($el);
             $writer->endElement();
@@ -237,15 +256,17 @@ while ($reader->read()) {
             break;
     }
 
-    false && fputs(STDERR, str_repeat(" ", $reader->depth) . join(' $ ', [
-            $reader->nodeType,
-            $reader->namespaceURI,
-            $reader->name,
-            $reader->depth,
-            " | " . implode(" > ", array_map(function ($el) {
-                return $el->name;
-            }, $stack)),
-        ]) . PHP_EOL);
+    if ($veryVerbose) {
+        fputs(STDERR, str_repeat(" ", $reader->depth) . join(' $ ', [
+                $reader->nodeType,
+                $reader->namespaceURI,
+                $reader->name,
+                $reader->depth,
+                " | " . implode(" > ", array_map(function ($el) {
+                    return $el->name;
+                }, $stack)),
+            ]) . PHP_EOL);
+    }
 
     if (isset($callbacks["{$reader->namespaceURI}:{$reader->name}"])) {
         $res = call_user_func(
@@ -260,7 +281,9 @@ while ($reader->read()) {
             array_pop($stack);
         }
     } else {
-        fprintf(STDERR, "!!! unknown tag [%s:%s]", $reader->namespaceURI, $reader->name);
+        if ($verbose) {
+            fprintf(STDERR, "!!! unknown tag [%s:%s]", $reader->namespaceURI, $reader->name);
+        }
     }
 
     if ($popAtTheEnd) {
@@ -269,3 +292,7 @@ while ($reader->read()) {
 }
 
 echo $writer->flush();
+
+if ($verbose) {
+    fprintf(STDERR, "done");
+}

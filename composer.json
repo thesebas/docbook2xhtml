@@ -1,16 +1,15 @@
 {
-    "name": "thesebas/docbook2html",
-    "type": "project",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "thesebas",
-            "email": "thesebas@thesebas.net"
-        }
-    ],
-    "bin": [
-        "docbook2html"
-    ],
-    "require": {}
-
+  "name": "thesebas/docbook2html",
+  "type": "library",
+  "description": "docbook2html CLI converter",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "thesebas",
+      "email": "thesebas@thesebas.net"
+    }
+  ],
+  "bin": [
+    "docbook2html"
+  ]
 }
