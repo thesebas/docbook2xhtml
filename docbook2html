@@ -19,7 +19,7 @@ $reader->open($inputFile);
 $writer = new \XMLWriter();
 $writer->openMemory();
 
-const NS_DOCKBOOK = 'http://docbook.org/ns/docbook';
+const NS_DOCBOOK = 'http://docbook.org/ns/docbook';
 const NS_XLINK = "http://www.w3.org/1999/xlink";
 const NS_EZXHTML = "http://ez.no/xmlns/ezpublish/docbook/xhtml";
 
@@ -66,21 +66,21 @@ $callbacks = [
         /** @var $el \XMLReader */
         $writer->writeRaw($el->value);
     },
-    fqn(NS_DOCKBOOK, 'section') => function ($el) use ($writer) {
+    fqn(NS_DOCBOOK, 'section') => function ($el) use ($writer) {
         if ($el->nodeType == \XMLReader::ELEMENT) {
             $writer->startElement('div');
         } else {
             $writer->endElement();
         }
     },
-    fqn(NS_DOCKBOOK, 'para') => function ($el) use ($writer) {
+    fqn(NS_DOCBOOK, 'para') => function ($el) use ($writer) {
         if ($el->nodeType == \XMLReader::ELEMENT) {
             $writer->startElement('p');
         } else {
             $writer->endElement();
         }
     },
-    fqn(NS_DOCKBOOK, 'emphasis') => function ($el) use ($writer, $verbose) {
+    fqn(NS_DOCBOOK, 'emphasis') => function ($el) use ($writer, $verbose) {
         if ($el->nodeType == \XMLReader::ELEMENT) {
             /** @var $el \XMLReader */
             $role = $el->getAttribute('role');
@@ -108,7 +108,7 @@ $callbacks = [
             $writer->endElement();
         }
     },
-    fqn(NS_DOCKBOOK, 'ezembed') => function ($el, $stack) use ($writer) {
+    fqn(NS_DOCBOOK, 'ezembed') => function ($el, $stack) use ($writer) {
         /** @var $el \XMLReader */
         $doc = new \DOMDocument();
         $xml = $el->readOuterXml();
@@ -117,7 +117,7 @@ $callbacks = [
         $xp = new \DOMXPath($doc);
         $xp->registerNamespace('x', NS_XLINK);
         $xp->registerNamespace('h', NS_EZXHTML);
-        $xp->registerNamespace('d', NS_DOCKBOOK);
+        $xp->registerNamespace('d', NS_DOCBOOK);
 
         if ($el->nodeType == \XMLReader::ELEMENT) {
             $class = $el->getAttributeNs('class', NS_EZXHTML);
@@ -154,7 +154,7 @@ $callbacks = [
             return 'pop';
         }
     },
-    fqn(NS_DOCKBOOK, 'itemizedlist') => function ($el, $stack) use ($writer) {
+    fqn(NS_DOCBOOK, 'itemizedlist') => function ($el, $stack) use ($writer) {
         /** @var $el \XMLReader */
         /** @var $writer \XMLWriter */
 
@@ -167,7 +167,7 @@ $callbacks = [
                 break;
         }
     },
-    fqn(NS_DOCKBOOK, 'listitem') => function ($el, $stack) use ($writer) {
+    fqn(NS_DOCBOOK, 'listitem') => function ($el, $stack) use ($writer) {
         /** @var $el \XMLReader */
         /** @var $writer \XMLWriter */
 
@@ -180,7 +180,7 @@ $callbacks = [
                 break;
         }
     },
-    fqn(NS_DOCKBOOK, 'superscript') => function ($el, $stack) use ($writer) {
+    fqn(NS_DOCBOOK, 'superscript') => function ($el, $stack) use ($writer) {
         /** @var $el \XMLReader */
         /** @var $writer \XMLWriter */
 
@@ -193,7 +193,7 @@ $callbacks = [
                 break;
         }
     },
-    fqn(NS_DOCKBOOK, 'link') => function ($el, $stack) use ($writer) {
+    fqn(NS_DOCBOOK, 'link') => function ($el, $stack) use ($writer) {
         /** @var $el \XMLReader */
         /** @var $writer \XMLWriter */
 
@@ -208,7 +208,7 @@ $callbacks = [
                 break;
         }
     },
-    fqn(NS_DOCKBOOK, 'title') => function ($el, $stack) use ($writer) {
+    fqn(NS_DOCBOOK, 'title') => function ($el, $stack) use ($writer) {
         /** @var $el \XMLReader */
         /** @var $writer \XMLWriter */
 
@@ -236,6 +236,9 @@ $callbacks = [
                 $writer->endElement();
                 break;
         }
+    },
+    fqn(NS_DOCBOOK, 'literallayout') => function () {
+        // ignore this tag, has no meaning
     },
 ];
 
