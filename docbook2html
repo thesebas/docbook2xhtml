@@ -61,25 +61,30 @@ function skipTillEnd($reader)
         }
     }
 }
+
+$mapToTag = function ($tag) use ($writer) {
+    return function ($el, $stack) use ($writer, $tag) {
+        /** @var $el \XMLReader */
+        /** @var $writer \XMLWriter */
+
+        switch ($el->nodeType) {
+            case  \XMLReader::ELEMENT:
+                $writer->startElement($tag);
+                break;
+            case  \XMLReader::END_ELEMENT:
+                $writer->endElement();
+                break;
+        }
+    };
+};
+
 $callbacks = [
     fqn('', '#text') => function ($el) use ($writer) {
         /** @var $el \XMLReader */
         $writer->writeRaw($el->value);
     },
-    fqn(NS_DOCBOOK, 'section') => function ($el) use ($writer) {
-        if ($el->nodeType == \XMLReader::ELEMENT) {
-            $writer->startElement('div');
-        } else {
-            $writer->endElement();
-        }
-    },
-    fqn(NS_DOCBOOK, 'para') => function ($el) use ($writer) {
-        if ($el->nodeType == \XMLReader::ELEMENT) {
-            $writer->startElement('p');
-        } else {
-            $writer->endElement();
-        }
-    },
+    fqn(NS_DOCBOOK, 'section') => $mapToTag('div'),
+    fqn(NS_DOCBOOK, 'para') => $mapToTag('p'),
     fqn(NS_DOCBOOK, 'emphasis') => function ($el) use ($writer, $verbose) {
         if ($el->nodeType == \XMLReader::ELEMENT) {
             /** @var $el \XMLReader */
@@ -154,45 +159,10 @@ $callbacks = [
             return 'pop';
         }
     },
-    fqn(NS_DOCBOOK, 'itemizedlist') => function ($el, $stack) use ($writer) {
-        /** @var $el \XMLReader */
-        /** @var $writer \XMLWriter */
-
-        switch ($el->nodeType) {
-            case  \XMLReader::ELEMENT:
-                $writer->startElement('ul');
-                break;
-            case  \XMLReader::END_ELEMENT:
-                $writer->endElement();
-                break;
-        }
-    },
-    fqn(NS_DOCBOOK, 'listitem') => function ($el, $stack) use ($writer) {
-        /** @var $el \XMLReader */
-        /** @var $writer \XMLWriter */
-
-        switch ($el->nodeType) {
-            case  \XMLReader::ELEMENT:
-                $writer->startElement('li');
-                break;
-            case  \XMLReader::END_ELEMENT:
-                $writer->endElement();
-                break;
-        }
-    },
-    fqn(NS_DOCBOOK, 'superscript') => function ($el, $stack) use ($writer) {
-        /** @var $el \XMLReader */
-        /** @var $writer \XMLWriter */
-
-        switch ($el->nodeType) {
-            case  \XMLReader::ELEMENT:
-                $writer->startElement('sup');
-                break;
-            case  \XMLReader::END_ELEMENT:
-                $writer->endElement();
-                break;
-        }
-    },
+    fqn(NS_DOCBOOK, 'itemizedlist') => $mapToTag('ul'),
+    fqn(NS_DOCBOOK, 'listitem') => $mapToTag('li'),
+    fqn(NS_DOCBOOK, 'superscript') => $mapToTag('sup'),
+    fqn(NS_DOCBOOK, 'subscript') => $mapToTag('sub'),
     fqn(NS_DOCBOOK, 'link') => function ($el, $stack) use ($writer) {
         /** @var $el \XMLReader */
         /** @var $writer \XMLWriter */
