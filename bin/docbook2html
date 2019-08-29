@@ -16,6 +16,6 @@ $veryVerbose = $verbose && is_array($opts['v']) && \count($opts['v']) > 1;
 $inputFile = $opts['f'];
 
 $converter = new \thesebas\docbook2html\Converter($veryVerbose ? 2 : ($verbose ? 1 : 0));
-$converter->convertFile($inputFile);
+echo $converter->convertFile($inputFile);
 
 $converter->log("done");

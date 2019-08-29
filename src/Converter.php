@@ -33,11 +33,13 @@ class Converter
     public function convertFile($filename)
     {
         $this->xmlReader->open($filename);
+        return $this->convert();
     }
 
     public function convertString($xml)
     {
         $this->xmlReader->XML($xml);
+        return $this->convert();
     }
 
     /**
@@ -113,5 +115,7 @@ class Converter
                 array_pop($stack);
             }
         }
+
+        return $this->xmlWriter->flush(true);
     }
 }
