@@ -282,7 +282,7 @@ while ($reader->read()) {
         }
     } else {
         if ($verbose) {
-            fprintf(STDERR, "!!! unknown tag [%s:%s]", $reader->namespaceURI, $reader->name);
+            fprintf(STDERR, "!!! unknown tag [%s:%s]" . PHP_EOL, $reader->namespaceURI, $reader->name);
         }
     }
 
@@ -294,5 +294,5 @@ while ($reader->read()) {
 echo $writer->flush();
 
 if ($verbose) {
-    fprintf(STDERR, "done");
+    fprintf(STDERR, "done" . PHP_EOL);
 }
