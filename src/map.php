@@ -222,8 +222,13 @@ function map($converter)
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
                         $embedHtml = fixAmpersand($embedHtml);
                         list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
-                        $tweeturl = $ixp->query('//a[contains(@href, "status")]/@href')->item(0)->nodeValue;
-                        $writer->writeRaw($tweeturl);
+
+                        if($node = xpQueryOne($ixp, '//a[contains(@href, "status")]/@href')){
+                            $writer->writeRaw($node->nodeValue);
+                        }elseif (is_numeric($embedHtml)){
+                            $writer->writeRaw("external://twitter?id={$embedHtml}");
+                        }
+
                         skipTillEnd($el);
                         break;
                     case 'instagram':
@@ -237,8 +242,12 @@ function map($converter)
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
                         $embedHtml = fixAmpersand($embedHtml);
                         list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
-                        $yturl = $ixp->query('//iframe[contains(@src, "embed")]/@src')->item(0)->nodeValue;
-                        $writer->writeRaw($yturl);
+                        if ($node = xpQueryOne($ixp, '//iframe[contains(@src, "embed")]/@src')) {
+                            $yturl = $node->nodeValue;
+                            $writer->writeRaw($yturl);
+                        } elseif (isValidUrl($embedHtml)) {
+                            $writer->writeRaw($embedHtml);
+                        }
                         skipTillEnd($el);
                         break;
                     case 'pinterest':
@@ -247,8 +256,12 @@ function map($converter)
                         $embedHtml = fixAmpersand($embedHtml);
                         list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
                         /** @var $ixp \DOMXPath */
-                        $pinurl = $ixp->query('//a[@data-pin-do="embedPin" or @data-pin-do="embedBoard"]/@href')->item(0)->nodeValue;
-                        $writer->writeRaw($pinurl);
+                        if ($node = xpQueryOne($ixp, '//a[@data-pin-do="embedPin" or @data-pin-do="embedBoard"]/@href')) {
+                            $writer->writeRaw($node->nodeValue);
+                        } elseif (isValidUrl($embedHtml)) {
+                            $writer->writeRaw($embedHtml);
+                        }
+
                         skipTillEnd($el);
                         break;
                     case 'tracdelight':
@@ -297,6 +310,7 @@ function map($converter)
                         $converter->log('unknown eztemplate template name [%s]', $templateName);
                 }
                 $writer->writeElement('br');
+                $writer->writeRaw(PHP_EOL . PHP_EOL . PHP_EOL);
             }
         },
     ];

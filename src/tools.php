@@ -99,3 +99,8 @@ function xpQueryOne($xp, $query, $context = null, $regNS = true)
     }
     return null;
 }
+
+function isValidUrl($str)
+{
+    return filter_var($str, FILTER_VALIDATE_URL) !== false;
+}
