@@ -186,50 +186,43 @@ function map($converter)
                         $val = $xp->query('/d:eztemplate/d:ezconfig/d:ezvalue[@key="embed"]');
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
                         $embedHtml = fixAmpersand($embedHtml);
-                        $idoc = new \DOMDocument();
-                        $idoc->loadHTML($embedHtml);
-                        $ixp = new \DOMXPath($idoc);
+                        list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
                         $fburl = $ixp->query('//div[@class="fb-post"]/@data-href')->item(0)->nodeValue;
-                        $writer->text($fburl);
+                        $writer->writeRaw($fburl);
                         skipTillEnd($el);
                         break;
                     case 'twitter':
                         $val = $xp->query('/d:eztemplate/d:ezconfig/d:ezvalue[@key="tweet_url"]');
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
                         $embedHtml = fixAmpersand($embedHtml);
-                        $idoc = new \DOMDocument();
-                        $idoc->loadHTML($embedHtml);
-                        $ixp = new \DOMXPath($idoc);
+                        list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
                         $tweeturl = $ixp->query('//a[contains(@href, "status")]/@href')->item(0)->nodeValue;
-                        $writer->text($tweeturl);
+                        $writer->writeRaw($tweeturl);
                         skipTillEnd($el);
                         break;
                     case 'instagram':
                         $val = $xp->query('/d:eztemplate/d:ezconfig/d:ezvalue[@key="url"]');
                         $instaUrl = html_entity_decode($val->item(0)->nodeValue);
-                        $writer->text($instaUrl);
+                        $writer->writeRaw($instaUrl);
                         skipTillEnd($el);
                         break;
                     case 'youtube':
                         $val = $xp->query('/d:eztemplate/d:ezconfig/d:ezvalue[@key="video"]');
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
                         $embedHtml = fixAmpersand($embedHtml);
-                        $idoc = new \DOMDocument();
-                        $idoc->loadHTML($embedHtml);
-                        $ixp = new \DOMXPath($idoc);
-                        $tweeturl = $ixp->query('//iframe[contains(@src, "embed")]/@src')->item(0)->nodeValue;
-                        $writer->text($tweeturl);
+                        list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
+                        $yturl = $ixp->query('//iframe[contains(@src, "embed")]/@src')->item(0)->nodeValue;
+                        $writer->writeRaw($yturl);
                         skipTillEnd($el);
                         break;
                     case 'pinterest':
                         $val = $xp->query('/d:eztemplate/d:ezconfig/d:ezvalue[@key="embed"]');
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
                         $embedHtml = fixAmpersand($embedHtml);
-                        $idoc = new \DOMDocument();
-                        $idoc->loadHTML($embedHtml);
-                        $ixp = new \DOMXPath($idoc);
-                        $tweeturl = $ixp->query('//a[@data-pin-do="embedPin"]/@href')->item(0)->nodeValue;
-                        $writer->text($tweeturl);
+                        list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
+
+                        $pinurl = $ixp->query('//a[@data-pin-do="embedPin"]/@href')->item(0)->nodeValue;
+                        $writer->writeRaw($pinurl);
                         skipTillEnd($el);
                         break;
                     case 'tracdelight':

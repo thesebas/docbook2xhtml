@@ -67,5 +67,17 @@ function mapToTag($tag, $writer)
 
 function fixAmpersand($html)
 {
-    return preg_replace('@(\W)&(\W)@', '$1&amp;$2', $html);
+    return preg_replace('@&(?!amp;)@', '&amp;', $html);
+}
+
+/**
+ * @param $html
+ *
+ * @return array[\DOMDocument, \DOMXpath]
+ */
+function loadHtmlToDomWithXpath($html){
+    $doc = new \DOMDocument();
+    $doc->loadHTML($html);
+    $xp = new \DOMXPath($doc);
+    return [$doc, $xp];
 }
