@@ -75,9 +75,27 @@ function fixAmpersand($html)
  *
  * @return array[\DOMDocument, \DOMXpath]
  */
-function loadHtmlToDomWithXpath($html){
+function loadHtmlToDomWithXpath($html)
+{
     $doc = new \DOMDocument();
     $doc->loadHTML($html);
     $xp = new \DOMXPath($doc);
     return [$doc, $xp];
+}
+
+/**
+ * @param \DOMXPath $xp
+ * @param string    $query
+ * @param null      $context
+ * @param bool      $regNS
+ *
+ * @return \DOMNode|null
+ */
+function xpQueryOne($xp, $query, $context = null, $regNS = true)
+{
+    $nodes = $xp->query($query, $context, $regNS);
+    if ($nodes->length > 0) {
+        return $nodes->item(0);
+    }
+    return null;
 }

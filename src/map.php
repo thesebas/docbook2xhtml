@@ -83,6 +83,17 @@ function map($converter)
                             $el->getAttributeNs('href', NS_XLINK)
                         );
                         break;
+                    case 'ez-embed-type-content':
+                        $writer->startElement('embed');
+                        $writer->writeAttribute(
+                            'size',
+                            $xp->query('/d:ezembed/d:ezconfig/d:ezvalue[@key="size"]')->item(0)->nodeValue
+                        );
+                        $writer->writeAttribute(
+                            'src',
+                            $el->getAttributeNs('href', NS_XLINK)
+                        );
+                        break;
                     case '':
                         $writer->startElement('embed');
                         $writer->writeAttribute(
@@ -192,8 +203,18 @@ function map($converter)
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
                         $embedHtml = fixAmpersand($embedHtml);
                         list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
-                        $fburl = $ixp->query('//div[@class="fb-post"]/@data-href')->item(0)->nodeValue;
-                        $writer->writeRaw($fburl);
+                        /** @var $ixp \DOMXPath */
+                        if ($fburl = xpQueryOne($ixp, '//div[@class="fb-post"]/@data-href')) {
+                            $fburl = $fburl->nodeValue;
+                            $writer->writeRaw($fburl);
+                        };
+                        if ($fburl = xpQueryOne($ixp, '//iframe[contains(@src, "facebook.com")]/@src')) {
+                            $fburl = $fburl->nodeValue;
+                            $components = parse_url($fburl);
+                            parse_str($components['query'], $query);
+                            $writer->writeRaw($query['href']);
+                        };
+
                         skipTillEnd($el);
                         break;
                     case 'twitter':
@@ -240,6 +261,18 @@ function map($converter)
                         $val = $xp->query('/d:eztemplate/d:ezconfig/d:ezvalue[@key="url"]');
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
                         $writer->writeRaw($embedHtml);
+                        skipTillEnd($el);
+                        break;
+                    case 'giphy':
+                        if ($node = xpQueryOne($xp, '/d:eztemplate/d:ezconfig/d:ezvalue[@key="embed"]')) {
+                            $embedHtml = html_entity_decode($node->nodeValue);
+                            $embedHtml = fixAmpersand($embedHtml);
+                            list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
+                            /** @var $ixp \DOMXPath */
+                            if ($giphyUrl = xpQueryOne($ixp, '//a[contains(@href, "giphy")]/@href')) {
+                                $writer->writeRaw($giphyUrl->nodeValue);
+                            }
+                        };
                         skipTillEnd($el);
                         break;
                     case 'anchor':
