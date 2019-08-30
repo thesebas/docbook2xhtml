@@ -10,12 +10,16 @@ if (!ini_get('date.timezone')) {
 
 require_once 'vendor/autoload.php';
 
-$opts = getopt('f:v');
+$opts = getopt('o:f:v');
 $verbose = isset($opts['v']);
 $veryVerbose = $verbose && is_array($opts['v']) && \count($opts['v']) > 1;
 $inputFile = $opts['f'];
+$outputFile = $opts['o'] ?? 'php://stdout';
 
 $converter = new \thesebas\docbook2html\Converter($veryVerbose ? 2 : ($verbose ? 1 : 0));
-echo $converter->convertFile($inputFile);
+$res = $converter->convertFile($inputFile);
+$output = fopen($outputFile, 'w');
+fwrite($output, $res);
+fclose($output);
 
 $converter->log("done");

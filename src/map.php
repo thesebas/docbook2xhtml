@@ -185,6 +185,7 @@ function map($converter)
                     case 'facebook':
                         $val = $xp->query('/d:eztemplate/d:ezconfig/d:ezvalue[@key="embed"]');
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
+                        $embedHtml = fixAmpersand($embedHtml);
                         $idoc = new \DOMDocument();
                         $idoc->loadHTML($embedHtml);
                         $ixp = new \DOMXPath($idoc);
@@ -195,6 +196,7 @@ function map($converter)
                     case 'twitter':
                         $val = $xp->query('/d:eztemplate/d:ezconfig/d:ezvalue[@key="tweet_url"]');
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
+                        $embedHtml = fixAmpersand($embedHtml);
                         $idoc = new \DOMDocument();
                         $idoc->loadHTML($embedHtml);
                         $ixp = new \DOMXPath($idoc);
@@ -211,6 +213,7 @@ function map($converter)
                     case 'youtube':
                         $val = $xp->query('/d:eztemplate/d:ezconfig/d:ezvalue[@key="video"]');
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
+                        $embedHtml = fixAmpersand($embedHtml);
                         $idoc = new \DOMDocument();
                         $idoc->loadHTML($embedHtml);
                         $ixp = new \DOMXPath($idoc);
@@ -221,7 +224,7 @@ function map($converter)
                     case 'pinterest':
                         $val = $xp->query('/d:eztemplate/d:ezconfig/d:ezvalue[@key="embed"]');
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
-
+                        $embedHtml = fixAmpersand($embedHtml);
                         $idoc = new \DOMDocument();
                         $idoc->loadHTML($embedHtml);
                         $ixp = new \DOMXPath($idoc);
@@ -262,6 +265,7 @@ function map($converter)
                     default:
                         $converter->log('unknown eztemplate template name [%s]', $templateName);
                 }
+                $writer->writeElement('br');
             }
         },
     ];

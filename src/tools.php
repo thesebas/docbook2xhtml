@@ -2,6 +2,8 @@
 
 namespace thesebas\docbook2html;
 
+use XMLReader;
+use XMLWriter;
 const NS_DOCBOOK = 'http://docbook.org/ns/docbook';
 const NS_XLINK = "http://www.w3.org/1999/xlink";
 const NS_EZXHTML = "http://ez.no/xmlns/ezpublish/docbook/xhtml";
@@ -21,7 +23,7 @@ function fqn($ns, $name)
 
 function snapshotReader($reader)
 {
-    /** @var $reader \XMLReader */
+    /** @var $reader XMLReader */
     return (object) [
         'name' => $reader->name,
         'namespace' => $reader->namespaceURI,
@@ -32,7 +34,7 @@ function snapshotReader($reader)
 function skipTillEnd($reader)
 {
 //    global $veryVerbose;
-    /** @var $reader \XMLReader */
+    /** @var $reader XMLReader */
 
     if ($reader->isEmptyElement) {
         return;
@@ -49,16 +51,21 @@ function skipTillEnd($reader)
 function mapToTag($tag, $writer)
 {
     return function ($el, $stack) use ($writer, $tag) {
-        /** @var $el \XMLReader */
-        /** @var $writer \XMLWriter */
+        /** @var $el XMLReader */
+        /** @var $writer XMLWriter */
 
         switch ($el->nodeType) {
-            case  \XMLReader::ELEMENT:
+            case  XMLReader::ELEMENT:
                 $writer->startElement($tag);
                 break;
-            case  \XMLReader::END_ELEMENT:
+            case  XMLReader::END_ELEMENT:
                 $writer->endElement();
                 break;
         }
     };
+}
+
+function fixAmpersand($html)
+{
+    return preg_replace('@(\W)&(\W)@', '$1&amp;$2', $html);
 }
