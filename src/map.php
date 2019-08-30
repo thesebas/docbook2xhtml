@@ -23,9 +23,14 @@ function map($converter)
         fqn(NS_DOCBOOK, 'listitem') => mapToTag('li', $writer),
         fqn(NS_DOCBOOK, 'superscript') => mapToTag('sup', $writer),
         fqn(NS_DOCBOOK, 'subscript') => mapToTag('sub', $writer),
-        fqn('', '#text') => function ($el) use ($writer) {
+        fqn('', '#text') => function ($el, $stack) use ($writer) {
             /** @var $el \XMLReader */
-            $writer->writeRaw($el->value);
+            $prevStack = $stack[count($stack) - 2] ?? false;
+            if ($prevStack && $prevStack->name == 'literallayout' && $prevStack->namespace == NS_DOCBOOK) {
+                $writer->writeRaw(nl2br($el->value));
+            } else {
+                $writer->writeRaw($el->value);
+            }
         },
         fqn(NS_DOCBOOK, 'emphasis') => function ($el) use ($writer, $converter) {
             if ($el->nodeType == \XMLReader::ELEMENT) {
@@ -220,8 +225,8 @@ function map($converter)
                         $embedHtml = html_entity_decode($val->item(0)->nodeValue);
                         $embedHtml = fixAmpersand($embedHtml);
                         list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
-
-                        $pinurl = $ixp->query('//a[@data-pin-do="embedPin"]/@href')->item(0)->nodeValue;
+                        /** @var $ixp \DOMXPath */
+                        $pinurl = $ixp->query('//a[@data-pin-do="embedPin" or @data-pin-do="embedBoard"]/@href')->item(0)->nodeValue;
                         $writer->writeRaw($pinurl);
                         skipTillEnd($el);
                         break;
