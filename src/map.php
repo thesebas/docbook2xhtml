@@ -154,23 +154,8 @@ function map($converter)
 
             switch ($el->nodeType) {
                 case  \XMLReader::ELEMENT:
-                    switch ($el->getAttributeNs('level', NS_EZXHTML)) {
-                        case 1:
-                            $writer->startElement('h1');
-                            break;
-                        case 2:
-                            $writer->startElement('h2');
-                            break;
-                        case 3:
-                            $writer->startElement('h3');
-                            break;
-                        case 4:
-                            $writer->startElement('h4');
-                            break;
-                        case 5:
-                            $writer->startElement('h5');
-                            break;
-                    }
+                    $level = $el->getAttributeNs('level', NS_EZXHTML);
+                    $writer->startElement("h{$level}");
                     break;
                 case  \XMLReader::END_ELEMENT:
                     $writer->endElement();
@@ -223,9 +208,9 @@ function map($converter)
                         $embedHtml = fixAmpersand($embedHtml);
                         list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
 
-                        if($node = xpQueryOne($ixp, '//a[contains(@href, "status")]/@href')){
+                        if ($node = xpQueryOne($ixp, '//a[contains(@href, "status")]/@href')) {
                             $writer->writeRaw($node->nodeValue);
-                        }elseif (is_numeric($embedHtml)){
+                        } elseif (is_numeric($embedHtml)) {
                             $writer->writeRaw("external://twitter?id={$embedHtml}");
                         }
 
