@@ -281,18 +281,11 @@ function map($converter)
                         $writer->fullEndElement();
                         skipTillEnd($el);
                         break;
-                    case 'newsletter_registration':
-                    case 'parent_money_calculator':
-                    case 'immunization':
-                    case 'percentiles_calculator':
-                    case 'birthday_calculator':
-                    case 'ovulation_calculator':
-                    case 'development_calculator':
-                        $writer->text("[{$templateName}]");
-                        skipTillEnd($el);
-                        break;
                     default:
-                        $converter->log('unknown eztemplate template name [%s]', $templateName);
+                        $writer->startElement('embed');
+                        $writer->writeAttribute('template', $templateName);
+                        $writer->fullEndElement();
+                        skipTillEnd($el);
                 }
                 $writer->writeElement('br');
                 $writer->writeRaw(PHP_EOL . PHP_EOL . PHP_EOL);
