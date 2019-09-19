@@ -229,7 +229,12 @@ function map($converter)
                         list($idoc, $ixp) = loadHtmlToDomWithXpath($embedHtml);
                         if ($node = xpQueryOne($ixp, '//iframe[contains(@src, "embed")]/@src')) {
                             $yturl = $node->nodeValue;
-                            $writer->writeRaw($yturl);
+                            $parts = parse_url($yturl);
+                            if (preg_match('@embed/(?<ytid>.*)@', $parts['path'], $matches)) {
+                                $writer->writeRaw("https://www.youtube.com/watch?v={$matches['ytid']}");
+                            } else {
+                                $writer->writeRaw($yturl);
+                            }
                         } elseif (isValidUrl($embedHtml)) {
                             $writer->writeRaw($embedHtml);
                         }
